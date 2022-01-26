@@ -10,19 +10,66 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+
+  const findUser = users.find(user => user.username === username);
+
+  if(!findUser){
+    return response.status(404).json({error: 'Especified username does not exist on the database.'})
+  }
+
+  request.user = findUser;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if((!user.pro && user.todos.length < 10)|| user.pro){
+    return next();
+  }
+
+  return response.status(403).json({error: 'You dont have enough permission to perform this action'});
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  if(!validate(id)){
+    return response.status(400).json({error:'Invalid id format'})
+  }
+
+  const findUser = users.find(user => user.username === username);
+  
+  if(!findUser){
+    return response.status(404).json({error: 'Especified username does not exist on the database.'})
+  }
+
+  const findTodo = findUser.todos.find(todo => todo.id === id);
+  if(!findTodo){
+    return response.status(404).json({error: 'Especified todo ID does not exist on the database.'})
+  }
+
+  request.user = findUser;
+  request.todo = findTodo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const {id} = request.params;
+
+  const findUser = users.find(user => user.id === id);
+
+  if(!findUser){
+    return response.status(404).json({error: 'Especified user ID does not exist on the database.'})
+  }
+
+  request.user = findUser;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
